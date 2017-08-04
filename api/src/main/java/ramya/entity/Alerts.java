@@ -1,35 +1,31 @@
 package ramya.entity;
 
 
-import java.security.Timestamp;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.UUID;
 
+@Entity
 public class Alerts {
 
+    @Id
     private String alertid;
+
     private String description;
     private String priority;
-    private String Vin;
-    private Timestamp timestamp;
+    private String timestamp;
 
-    public Alerts() {
+    public Alerts(String timestamp) {
         this.alertid = UUID.randomUUID().toString();
+        this.timestamp = timestamp;
     }
 
 
-    public String getVin() {
-        return Vin;
-    }
-
-    public void setVin(String vin) {
-        Vin = vin;
-    }
-
-    public Timestamp getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -65,7 +61,6 @@ public class Alerts {
                 "alertid='" + alertid + '\'' +
                 ", description='" + description + '\'' +
                 ", priority='" + priority + '\'' +
-                ", Vin='" + Vin + '\'' +
                 ", timestamp=" + timestamp +
                 '}';
     }

@@ -10,11 +10,13 @@ public interface VehicleService {
 
     List<Vehicle> findAll();
     Vehicle findOne(String vin);
-    Vehicle create(Vehicle veh);
+    List<Vehicle> create(List<Vehicle> veh);
     Vehicle update(String vin, Vehicle veh);
+
     List<Readings> findAllReadings();
     Readings findOneReadings(String id);
     Readings createReadings(Readings reads);
     Readings updateReadings(String id, Readings reads);
-    Alerts generate(Alerts alert);
+
+
 }

@@ -1,54 +1,44 @@
 package ramya.entity;
 
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.NamedQuery;
+import javafx.scene.control.Alert;
+
+import javax.persistence.*;
 import java.util.UUID;
 
 
-@NamedQuery(name = "Readings.findAllReading", query = "select reads from Readings reads")
+@NamedQuery(name = "Readings.findAllReading", query = "select reads from Readings order by speed DESC")
 
 @Entity
 public class Readings {
 
     @Id
-    private String id;
-   private String vin;
-    private int latitude;
-    private int longitude;
+    private String rid;
+
+    @Transient
+    private String vin;
+    private double latitude;
+    private double longitude;
     private String timestamp;
-    private int fuelVolume;
+    private double fuelVolume;
     private int speed;
     private int engineHp;
-    private int checkEngineLightOn;
-    private int engineCoolantLow;
-    private int cruiseControllOn;
+    private boolean checkEngineLightOn;
+    private boolean engineCoolantLow;
+    private boolean cruiseControllOn;
     private int engineRpm;
 
+    @ManyToOne
+    private Vehicle vehicle;
 
-@Embedded
-private Tires tires;
+    @OneToOne
+    private Tires tires;
 
-    public Tires getTires() {
-        return tires;
-    }
-
-    public void setTires(Tires tires) {
-        this.tires = tires;
-    }
+    @OneToOne
+    private Alerts alert;
 
     public Readings() {
-        this.vin = UUID.randomUUID().toString();
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+        this.rid = UUID.randomUUID().toString();
     }
 
     public String getVin() {
@@ -59,19 +49,51 @@ private Tires tires;
         this.vin = vin;
     }
 
-    public int getLatitude() {
+    public Tires getTires() {
+        return tires;
+    }
+
+    public void setTires(Tires tires) {
+        this.tires = tires;
+    }
+
+    public Vehicle getVehicle() {
+        return vehicle;
+    }
+
+    public void setVehicle(Vehicle vehicle) {
+        this.vehicle = vehicle;
+    }
+
+    public Alerts getAlert() {
+        return alert;
+    }
+
+    public void setAlert(Alerts alert) {
+        this.alert = alert;
+    }
+
+    public String getRid() {
+        return rid;
+    }
+
+    public void setRid(String rid) {
+        this.rid = rid;
+    }
+
+    public double getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(int latitude) {
+    public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
 
-    public int getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(int longitude) {
+    public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 
@@ -83,11 +105,11 @@ private Tires tires;
         this.timestamp = timestamp;
     }
 
-    public int getFuelVolume() {
+    public double getFuelVolume() {
         return fuelVolume;
     }
 
-    public void setFuelVolume(int fuelVolume) {
+    public void setFuelVolume(double fuelVolume) {
         this.fuelVolume = fuelVolume;
     }
 
@@ -107,27 +129,27 @@ private Tires tires;
         this.engineHp = engineHp;
     }
 
-    public int getCheckEngineLightOn() {
+    public boolean isCheckEngineLightOn() {
         return checkEngineLightOn;
     }
 
-    public void setCheckEngineLightOn(int checkEngineLightOn) {
+    public void setCheckEngineLightOn(boolean checkEngineLightOn) {
         this.checkEngineLightOn = checkEngineLightOn;
     }
 
-    public int getEngineCoolantLow() {
+    public boolean isEngineCoolantLow() {
         return engineCoolantLow;
     }
 
-    public void setEngineCoolantLow(int engineCoolantLow) {
+    public void setEngineCoolantLow(boolean engineCoolantLow) {
         this.engineCoolantLow = engineCoolantLow;
     }
 
-    public int getCruiseControllOn() {
+    public boolean isCruiseControllOn() {
         return cruiseControllOn;
     }
 
-    public void setCruiseControllOn(int cruiseControllOn) {
+    public void setCruiseControllOn(boolean cruiseControllOn) {
         this.cruiseControllOn = cruiseControllOn;
     }
 
@@ -142,7 +164,8 @@ private Tires tires;
     @Override
     public String toString() {
         return "Readings{" +
-                "vin='" + vin + '\'' +
+                "rid='" + rid + '\'' +
+                ", vin='" + vin + '\'' +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
                 ", timestamp='" + timestamp + '\'' +
@@ -153,7 +176,9 @@ private Tires tires;
                 ", engineCoolantLow=" + engineCoolantLow +
                 ", cruiseControllOn=" + cruiseControllOn +
                 ", engineRpm=" + engineRpm +
+                ", vehicle=" + vehicle +
                 ", tires=" + tires +
+                ", alert=" + alert +
                 '}';
     }
 }

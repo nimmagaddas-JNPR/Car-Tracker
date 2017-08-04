@@ -11,48 +11,53 @@ import ramya.exception.ResourceNotFoundException;
 import ramya.repository.VehicleRepository;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class VehicleServiceImpl implements VehicleService{
+public class VehicleServiceImpl implements VehicleService {
 
 
     @Autowired
-VehicleRepository repository;
+    VehicleRepository repository;
 
 
     //Vehicles
     @Transactional
-    public List<Vehicle> findAll() {return repository.findAll();}
+    public List<Vehicle> findAll() {
+        return repository.findAll();
+    }
 
     @Transactional
     public Vehicle findOne(String vin) {
         Vehicle existing = repository.findOne(vin);
-        if(existing == null)
-        {
+        if (existing == null) {
             //exception handling
-           throw new ResourceNotFoundException("Employee with id" +vin+ "doesn't exists.");
+            throw new ResourceNotFoundException("Employee with id" + vin + "doesn't exists.");
         }
         return existing;
     }
 
     @Transactional
-    public Vehicle create(Vehicle veh) {
-        Vehicle existing = repository.findOne(veh.getVin());
-        if (existing != null) {
-            repository.update(veh);
-        } else {
-            repository.create(veh);
-
+    public List<Vehicle> create(List<Vehicle> veh) {
+        List<Vehicle> vehicles = new ArrayList<Vehicle>();
+        for (Vehicle vehicle : veh) {
+            Vehicle existing = repository.findOne(vehicle.getVin());
+            if (existing != null) {
+                repository.update(vehicle);
+            } else {
+                repository.create(vehicle);
+            }
+            vehicles.add(existing);
         }
-        return veh;
+        return vehicles;
     }
 
     @Transactional
     public Vehicle update(String vin, Vehicle veh) {
         Vehicle existing = repository.findOne(vin);
-        if(existing==null){
+        if (existing == null) {
             //exception handing 404 error
             //throw new ResourceNotFoundException("Employee with id" +vin+ "doesn't exists.");
         }
@@ -62,7 +67,9 @@ VehicleRepository repository;
     //Readings
 
     @Transactional
-    public List<Readings> findAllReadings() {return  repository.findAllReadings();}
+    public List<Readings> findAllReadings() {
+        return repository.findAllReadings();
+    }
 
 
     @Transactional
@@ -77,26 +84,52 @@ VehicleRepository repository;
     @Transactional
     public Readings createReadings(Readings read) {
         if (read != null) {
-            Vehicle existing = repository.findOne(read.getId());
-            if (existing != null) {
-                throw new BadRequestException("Vehicle Reading with id " + read.getId() + " already exists.");
-
+            System.out.println(read);
+            Vehicle existing = repository.findOne(read.getVin());
+            if (existing == null) {
+                throw new BadRequestException("Vehicle with vin " + read.getVin() + " doesn't exists.");
             }
-             repository.createReadings(read);
-        }
-        else {
-            String ID = UUID.randomUUID().toString();
-            Vehicle existing = repository.findOne(ID);
-            if (existing != null) {
-                throw new BadRequestException("Vehicle Reading with id " + ID + " already exists.");
+            read.setVehicle(existing);
 
+            Alerts alert = isAlertCreated(read);
+            if (alert != null) {
+                repository.createAlert(alert);
+                read.setAlert(alert);
             }
+
+            repository.createTire(read.getTires());
             repository.createReadings(read);
-
         }
         return read;
     }
 
+    private Alerts isAlertCreated(Readings read) {
+        Alerts alert = new Alerts(read.getTimestamp());
+        boolean flag = false;
+        if (read.getEngineRpm() > read.getVehicle().getRedLineRpm()) {
+            alert.setPriority("HIGH");
+            alert.setDescription("Engine RPM going over ReadLine RPM");
+            flag = true;
+        } else if (read.getFuelVolume() < (.10 * read.getVehicle().getMaxFuelVolume())) {
+            alert.setPriority("MEDIUM");
+            alert.setDescription("Fuel is too less");
+            flag = true;
+        } else if (read.getTires().getFrontLeft() < 32 || read.getTires().getFrontLeft() > 36 ||
+                read.getTires().getFrontRight() < 32 || read.getTires().getFrontRight() > 36 ||
+                read.getTires().getRearLeft() < 32 || read.getTires().getRearLeft() > 36 ||
+                read.getTires().getRearRight() < 32 || read.getTires().getRearRight() > 36) {
+            alert.setPriority("LOW");
+            alert.setDescription("Tire Pressure is LOW or HIGH");
+            flag = true;
+        } else if (read.isEngineCoolantLow() || read.isCheckEngineLightOn()) {
+            alert.setPriority("LOW");
+            if (read.isEngineCoolantLow()) alert.setDescription("Engine Coolant is LOW");
+            else if (read.isCheckEngineLightOn()) alert.setDescription("Engine Light ON");
+            flag = true;
+        }
+        if (!flag) alert = null;
+        return alert;
+    }
 
 
     @Transactional
@@ -106,11 +139,6 @@ VehicleRepository repository;
             throw new ResourceNotFoundException("Vehicle Readings with vin " + id + " doesn't exist.");
         }
         return repository.updateReadings(reads);
-    }
-
-    @Transactional
-    public Alerts generate(Alerts alert) {
-        return repository.generate(alert);
     }
 
 }
